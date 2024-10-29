@@ -1,10 +1,10 @@
 #include "uart.hpp"
 #include <unistd.h>
 #include <fcntl.h>
+#include <sys/select.h>
 
 WAL::Uart::Uart()
-    : _uart_fs(0)
-    , _opt({})
+    : _uart_fs(0), _opt({})
 {
     // Baud rate 9600, 8 data bits, no hardware control flow, enable receiver
     _opt.c_cflag = B9600 | CS8 | CLOCAL | CREAD;
@@ -30,21 +30,37 @@ int WAL::Uart::init(const std::string &path)
     // Set UART options
     struct termios temp;
     int ret;
-    if((ret = tcgetattr(_uart_fs, &temp)) < 0)
+    if ((ret = tcgetattr(_uart_fs, &temp)) < 0)
         return ret;
-    if((ret = tcsetattr(_uart_fs, TCSANOW, &_opt)) < 0)
+    if ((ret = tcsetattr(_uart_fs, TCSANOW, &_opt)) < 0)
         return ret;
+
     return 0;
 }
 
-ssize_t WAL::Uart::send(const char* data, size_t len)
+ssize_t WAL::Uart::send(const char *data, size_t len)
 {
     return write(_uart_fs, data, len);
 }
 
-ssize_t WAL::Uart::recv(uint8_t* &data)
+ssize_t WAL::Uart::recv(uint8_t *&data)
 {
-    ssize_t read_size = read(_uart_fs, (void*)_rx_buffer, 255);
+    ssize_t read_size = 0;
+    uint8_t timeout = 0;
+    data = nullptr;
+
+    while (timeout < UINT8_MAX)
+    {
+        read_size = read(_uart_fs, (void *)_rx_buffer, 255);
+        if (read_size == 0)
+        {
+            usleep(TIMEOUT_SLEEP);
+            timeout++;
+        }
+        else
+            break;
+    }
+
     data = _rx_buffer;
     return read_size;
 }

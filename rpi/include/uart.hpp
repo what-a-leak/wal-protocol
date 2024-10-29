@@ -5,7 +5,7 @@
 #include <cstdint>
 
 #define UART_BASE_PATH  "/dev/serial0"
-
+#define TIMEOUT_SLEEP   10000
 namespace WAL
 {
 

@@ -12,8 +12,8 @@ WAL::Uart::Uart()
     _opt.c_iflag = IGNPAR | IGNCR;
     // No output processing.
     _opt.c_oflag = 0;
-    // No line processing.
-    _opt.c_lflag = 0;
+    // Enable canonical mode.
+    _opt.c_lflag = 0; 
 }
 
 WAL::Uart::~Uart()
@@ -43,24 +43,26 @@ ssize_t WAL::Uart::send(const char *data, size_t len)
     return write(_uart_fs, data, len);
 }
 
-ssize_t WAL::Uart::recv(uint8_t *&data)
+ssize_t WAL::Uart::recv(uint8_t *&data, char eol)
 {
-    ssize_t read_size = 0;
+    ssize_t read_size = 0, offset = 0, total_read = 0;
     uint8_t timeout = 0;
     data = nullptr;
 
-    while (timeout < UINT8_MAX)
+    while ((timeout < UINT8_MAX) && (_rx_buffer[offset-1] != eol))
     {
-        read_size = read(_uart_fs, (void *)_rx_buffer, 255);
+        read_size = read(_uart_fs, (void *)(_rx_buffer+offset), 255);
         if (read_size == 0)
         {
             usleep(TIMEOUT_SLEEP);
             timeout++;
         }
-        else
-            break;
+        else {
+            total_read += read_size;
+            offset += read_size;
+        }
     }
 
     data = _rx_buffer;
-    return read_size;
+    return total_read;
 }

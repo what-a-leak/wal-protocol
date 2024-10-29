@@ -5,7 +5,7 @@
 #include <cstdint>
 
 #define UART_BASE_PATH  "/dev/serial0"
-#define TIMEOUT_SLEEP   10000
+#define TIMEOUT_SLEEP   30000
 namespace WAL
 {
 
@@ -16,7 +16,7 @@ namespace WAL
             ~Uart();
             int init(const std::string& path);
             ssize_t send(const char* data, size_t len);
-            ssize_t recv(uint8_t* &data);
+            ssize_t recv(uint8_t* &data, char eol='\n');
         private:
             int _uart_fs;
             struct termios _opt;

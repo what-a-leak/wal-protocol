@@ -1,11 +1,12 @@
 #include <stdio.h>
 #include <unistd.h>
+#include <string.h>
 #include "uart.hpp"
 
 int main(void)
 {
     WAL::Uart uart;
-    const char *at = "AT+VER\r\n";
+    const char *at = "AT+MODE=TEST\r\n";
     uint8_t *recv_ptr;
     int ret = 0;
 
@@ -16,7 +17,7 @@ int main(void)
     }
 
     // Sending AT
-    if (uart.send(at, sizeof(at)) < 0)
+    if (uart.send(at, strlen(at)) < 0)
     {
         printf("Failed to send data.");
         return -1;

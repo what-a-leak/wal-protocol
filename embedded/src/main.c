@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include "serial.h"
 #include "ssd1306.h"
 
 #define I2C_MASTER_SCL_IO 6        /*!< gpio number for I2C master clock */
@@ -8,11 +9,7 @@
 
 static ssd1306_handle_t ssd1306_dev = NULL;
 
-extern "C" void app_main() {
-    /*
-    Serial.begin(115200);
-    Serial.println("Hello, Arduino!");
-    */
+void screen() {
     i2c_config_t conf;
     conf.mode = I2C_MODE_MASTER;
     conf.sda_io_num = (gpio_num_t)I2C_MASTER_SDA_IO;
@@ -30,14 +27,22 @@ extern "C" void app_main() {
     ssd1306_clear_screen(ssd1306_dev, 0x00);
 
     char data_str[10] = {0};
-    sprintf(data_str, "C STR");
+    sprintf(data_str, "X STR");
     ssd1306_draw_string(ssd1306_dev, 70, 16, (const uint8_t *)data_str, 16, 1);
     ssd1306_refresh_gram(ssd1306_dev);
 }
 
-/*
-void loop() {
-    Serial.println("Running loop... 📁📁📁");
-    delay(1000);
+void app_main(void)
+{
+    /* init m8 */
+    serial_init(9600, UART_NUM_0);
+    screen();
+
+    /* loop */
+    const char *message = "Hello, World!\n";
+    while (1)
+    {
+        uart_write_bytes(UART_NUM_0, message, 15);
+        vTaskDelay(pdMS_TO_TICKS(1000)); // Delay 1 second
+    }
 }
-*/

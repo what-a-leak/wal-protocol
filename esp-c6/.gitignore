@@ -1,9 +1,0 @@
-# VSCode
-.vscode/**
-
-# File created by esp-idf
-
-build/**
-managed_components/**
-dependencies.lock
-sdkconfig.old

@@ -4,6 +4,7 @@
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/**",
+                "${workspaceFolder}/../esp-c6/managed_components/espressif__ssd1306/include",
                 "${workspaceFolder}/../module/arduino-esp32/cores/esp32",
                 "${workspaceFolder}/../module/arduino-esp32/variants/esp32c6",
                 "${workspaceFolder}/../module/esp-idf/components/riscv/include",
@@ -29,7 +30,9 @@
                 "${workspaceFolder}/../module/esp-idf/components/lwip/port/esp32xx/include",
                 "${workspaceFolder}/../module/esp-idf/components/lwip/port/freertos/include/",
                 "${workspaceFolder}/../module/esp-idf/components/esp_driver_usb_serial_jtag/include",
-                "${workspaceFolder}/../module/esp-idf/components/esp_partition/include/"
+                "${workspaceFolder}/../module/esp-idf/components/esp_partition/include/",
+                "${workspaceFolder}/../module/esp-idf/components/driver/i2c/include/",
+                "${workspaceFolder}/build/bootloader/config"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/clang",

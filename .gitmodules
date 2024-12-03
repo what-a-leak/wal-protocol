@@ -1,0 +1,4 @@
+[submodule "lib/U8g2_Arduino"]
+	path = lib/U8g2_Arduino
+	url = https://github.com/olikraus/U8g2_Arduino.git
+	branch = 2.35.30

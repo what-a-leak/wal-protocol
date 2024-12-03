@@ -1,0 +1,42 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "${workspaceFolder}/../module/arduino-esp32/cores/esp32",
+                "${workspaceFolder}/../module/arduino-esp32/variants/esp32c6",
+                "${workspaceFolder}/../module/esp-idf/components/riscv/include",
+                "${workspaceFolder}/../module/esp-idf/components/freertos/FreeRTOS-Kernel/include",
+                "${workspaceFolder}/../module/esp-idf/components/freertos/FreeRTOS-Kernel/portable/riscv/include",
+                "${workspaceFolder}/../module/esp-idf/components/freertos/FreeRTOS-Kernel/portable/riscv/include/freertos",
+                "${workspaceFolder}/../module/esp-idf/components/freertos/config/include",
+                "${workspaceFolder}/../module/esp-idf/components/freertos/config/include/freertos",
+                "${workspaceFolder}/../module/esp-idf/components/freertos/config/riscv/include",
+                "${workspaceFolder}/../module/esp-idf/components/heap/include",
+                "${workspaceFolder}/../module/esp-idf/components/newlib/platform_include",
+                "${workspaceFolder}/../module/esp-idf/components/esp_system/include",
+                "${workspaceFolder}/../module/esp-idf/components/esp_common/include",
+                "${workspaceFolder}/../module/esp-idf/components/esp_hw_support/include",
+                "${workspaceFolder}/../module/esp-idf/components/esp_driver_gpio/include",
+                "${workspaceFolder}/../module/esp-idf/components/esp_timer/include",
+                "${workspaceFolder}/../module/esp-idf/components/esp_rom/include",
+                "${workspaceFolder}/../module/esp-idf/components/hal/include",
+                "${workspaceFolder}/../module/esp-idf/components/esp_driver_gptimer/include",
+                "${workspaceFolder}/../module/esp-idf/components/esp_rom/include/esp32c6",
+                "${workspaceFolder}/../module/esp-idf/components/soc/esp32c6/include",
+                "${workspaceFolder}/../module/esp-idf/components/lwip/lwip/src/include",
+                "${workspaceFolder}/../module/esp-idf/components/lwip/port/esp32xx/include",
+                "${workspaceFolder}/../module/esp-idf/components/lwip/port/freertos/include/",
+                "${workspaceFolder}/../module/esp-idf/components/esp_driver_usb_serial_jtag/include",
+                "${workspaceFolder}/../module/esp-idf/components/esp_partition/include/"
+            ],
+            "defines": [],
+            "compilerPath": "/usr/bin/clang",
+            "cStandard": "c17",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "linux-clang-x64"
+        }
+    ],
+    "version": 4
+}

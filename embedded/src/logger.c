@@ -1,4 +1,12 @@
 #include "logger.h"
+#include "screen.h"
+
+#include <stdio.h>
+#include <string.h>
+#include <stdarg.h>
+
+static uint8_t _filled_log;
+static char _log[MAX_LOG][CHAR_LIMIT];
 
 inline static void strcpy_log(char* dst, const char* src)
 {
@@ -21,26 +29,21 @@ inline static void copy_log(const char *src, char log[][24], uint8_t pos)
     }
 }
 
-Logger::Logger()
-    : _u8g2(U8G2_R0, U8X8_PIN_NONE, SCREEN_SCL, SCREEN_SDA), _filled_log(0)
-{}
-
-void Logger::init()
+void log(const char *format, ...)
 {
-    _u8g2.begin();
-    _u8g2.setFont(u8g2_font_busdisplay8x5_tr);
-}
+    va_list args;
+    va_start(args, format);
+    char str[16] = {0}; 
+    int len = vsnprintf(str, 16, format, args);
+    va_end(args);
 
-void Logger::print(const char *str)
-{
     // update the log if filled > MAX_LOG
     copy_log(str, _log, _filled_log);
     // _filled_log (0-6) : filling screen, (7): removing last log, updating
     _filled_log = (_filled_log > MAX_LOG) ? MAX_LOG+1 : _filled_log+1;
 
-    _u8g2.clearBuffer();
+    screen_clear();
     // Loop between the filled log or the max log that could be printed
     for (uint8_t i = 0; (i < MAX_LOG) && (i < _filled_log); i++)
-        _u8g2.drawStr(0, (i + 1) * 10, _log[i]);
-    _u8g2.sendBuffer();
+        screen_draw(i, _log[i], CHAR_LIMIT);
 }

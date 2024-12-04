@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "serial.h"
 #include "screen.h"
+#include "logger.h"
 
 void app_main(void)
 {
@@ -12,7 +13,7 @@ void app_main(void)
     int i= 0;
     while (1)
     {
-        screen_draw(i, "Test %d", i);
+        log("Test %d", i);
         //serial_printf("Test %d\n", i);
         i++;
         //vTaskDelay(pdMS_TO_TICKS(200)); // Delay 1 second

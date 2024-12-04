@@ -1,6 +1,6 @@
 #include "ssd1306.h"
-#include "font8x8_basic.h"
 
+#include "font8x8_basic.h"
 #include <stdarg.h>
 
 #define I2C_MASTER_NUM          I2C_NUM_0
@@ -27,7 +27,7 @@ void screen_init(gpio_num_t scl, gpio_num_t sda, uint32_t speed)
     ssd1306_clear_screen(ssd1306_dev, 0x00);
 }
 
-static void ssd1306_draw_bitmap_8bit(ssd1306_handle_t dev, uint8_t chXpos, uint8_t chYpos,
+inline static void ssd1306_draw_bitmap_8bit(ssd1306_handle_t dev, uint8_t chXpos, uint8_t chYpos,
                          const uint8_t *pchBmp)
 {
     uint16_t i, j;
@@ -42,7 +42,7 @@ static void ssd1306_draw_bitmap_8bit(ssd1306_handle_t dev, uint8_t chXpos, uint8
     }
 }
 
-void screen_draw(const uint8_t line,const char* format, ...)
+void screen_printf(const uint8_t line,const char* format, ...)
 {
     va_list args;
     va_start(args, format);
@@ -59,4 +59,21 @@ void screen_draw(const uint8_t line,const char* format, ...)
         }
     }
     ssd1306_refresh_gram(ssd1306_dev);
+}
+
+void screen_draw(const uint8_t line, const char* str, int len)
+{
+    int x_pos = 0;
+    for (int i = 0; i < len; i++) {
+        const uint8_t char_index = str[i];
+        ssd1306_draw_bitmap_8bit(ssd1306_dev, x_pos, (line%8)*8, (const uint8_t*)(font8x8_basic[char_index]));
+        x_pos += 8;
+    }
+    ssd1306_refresh_gram(ssd1306_dev);
+}
+
+void screen_clear()
+{
+    ssd1306_refresh_gram(ssd1306_dev);
+    ssd1306_clear_screen(ssd1306_dev, 0x00);
 }

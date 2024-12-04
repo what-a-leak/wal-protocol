@@ -4,7 +4,6 @@
 #include <stdarg.h>
 
 #define I2C_MASTER_NUM          I2C_NUM_0
-#define I2C_MASTER_FREQ_HZ      10000000
 #define MAX_CHAR                16
 
 static ssd1306_handle_t ssd1306_dev = NULL;
@@ -69,11 +68,15 @@ void screen_draw(const uint8_t line, const char* str, int len)
         ssd1306_draw_bitmap_8bit(ssd1306_dev, x_pos, (line%8)*8, (const uint8_t*)(font8x8_basic[char_index]));
         x_pos += 8;
     }
-    ssd1306_refresh_gram(ssd1306_dev);
 }
 
 void screen_clear()
 {
     ssd1306_refresh_gram(ssd1306_dev);
     ssd1306_clear_screen(ssd1306_dev, 0x00);
+}
+
+void screen_update()
+{
+    ssd1306_refresh_gram(ssd1306_dev);
 }

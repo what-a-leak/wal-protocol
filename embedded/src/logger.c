@@ -29,12 +29,12 @@ inline static void copy_log(const char *src, char log[][24], uint8_t pos)
     }
 }
 
-void log(const char *format, ...)
+void screen_log(const char *format, ...)
 {
     va_list args;
     va_start(args, format);
     char str[16] = {0}; 
-    int len = vsnprintf(str, 16, format, args);
+    vsnprintf(str, 16, format, args);
     va_end(args);
 
     // update the log if filled > MAX_LOG
@@ -46,4 +46,5 @@ void log(const char *format, ...)
     // Loop between the filled log or the max log that could be printed
     for (uint8_t i = 0; (i < MAX_LOG) && (i < _filled_log); i++)
         screen_draw(i, _log[i], CHAR_LIMIT);
+    screen_update();
 }

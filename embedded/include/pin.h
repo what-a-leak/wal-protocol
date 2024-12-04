@@ -1,8 +1,10 @@
 #ifndef HEADER_PIN
 #define HEADER_PIN
 
-#define SCREEN_SDA  35
-#define SCREEN_SCL  36
+#include <hal/gpio_types.h>
+
+#define SCREEN_SDA  GPIO_NUM_7
+#define SCREEN_SCL  GPIO_NUM_6
 #define LORA_TX     43
 #define LORA_RX     44
 

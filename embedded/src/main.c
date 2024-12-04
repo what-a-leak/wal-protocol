@@ -9,11 +9,12 @@ void app_main(void)
     screen_init(GPIO_NUM_6, GPIO_NUM_7, 10000);
 
     /* loop */
-    const char *message = "Hello, World!\n";
-    screen_draw();
+    int i= 0;
     while (1)
     {
-        uart_write_bytes(UART_NUM_0, message, 15);
-        vTaskDelay(pdMS_TO_TICKS(1000)); // Delay 1 second
+        screen_draw(i, "Test %d", i);
+        //serial_printf("Test %d\n", i);
+        i++;
+        //vTaskDelay(pdMS_TO_TICKS(200)); // Delay 1 second
     }
 }

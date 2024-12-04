@@ -1,7 +1,11 @@
 #include "ssd1306.h"
+#include "font8x8_basic.h"
 
-#define I2C_MASTER_NUM I2C_NUM_0
-#define I2C_MASTER_FREQ_HZ 100000
+#include <stdarg.h>
+
+#define I2C_MASTER_NUM          I2C_NUM_0
+#define I2C_MASTER_FREQ_HZ      10000000
+#define MAX_CHAR                16
 
 static ssd1306_handle_t ssd1306_dev = NULL;
 
@@ -23,10 +27,36 @@ void screen_init(gpio_num_t scl, gpio_num_t sda, uint32_t speed)
     ssd1306_clear_screen(ssd1306_dev, 0x00);
 }
 
-void screen_draw()
+static void ssd1306_draw_bitmap_8bit(ssd1306_handle_t dev, uint8_t chXpos, uint8_t chYpos,
+                         const uint8_t *pchBmp)
 {
-    char data_str[10] = {0};
-    sprintf(data_str, "Z STR");
-    ssd1306_draw_string(ssd1306_dev, 70, 16, (const uint8_t *)data_str, 16, 1);
+    uint16_t i, j;
+
+    for(i=0; i<8; i++)
+    {
+        for(j=8; j>0; j--)
+        {
+            if((pchBmp[i] >> (j-1)) & 0x1)
+                ssd1306_fill_point(dev, chXpos + j, chYpos + i, 1);
+        }
+    }
+}
+
+void screen_draw(const uint8_t line,const char* format, ...)
+{
+    va_list args;
+    va_start(args, format);
+    char buff[16] = {0}; 
+    int len = vsnprintf(buff, sizeof(buff), format, args);
+    va_end(args);
+
+    if (len > 0) {
+        int x_pos = 0;
+        for (int i = 0; i < len; i++) {
+            const uint8_t char_index = buff[i];
+            ssd1306_draw_bitmap_8bit(ssd1306_dev, x_pos, (line%8)*8, (const uint8_t*)(font8x8_basic[char_index]));
+            x_pos += 8;
+        }
+    }
     ssd1306_refresh_gram(ssd1306_dev);
 }

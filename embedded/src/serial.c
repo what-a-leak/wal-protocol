@@ -1,4 +1,6 @@
 #include "serial.h"
+
+#include <stdarg.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
@@ -21,4 +23,15 @@ int serial_init(int baud_rate, uart_port_t port)
         return err;
     err = uart_param_config(port, &uart_config);
     return err;
+}
+
+void serial_printf(const char* format, ...)
+{
+    va_list args;
+    va_start(args, format);
+    char buff[64] = {0};
+
+    int len = vsprintf(buff, format, args);
+    va_end(args);
+    uart_write_bytes(UART_NUM_0, buff, len);
 }

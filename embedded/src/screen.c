@@ -1,4 +1,6 @@
 #include "ssd1306.h"
+// ! To be replaced with:
+// #include <esp_lcd_panel_ssd1306.h>
 
 #include "font8x8_basic.h"
 #include <stdarg.h>

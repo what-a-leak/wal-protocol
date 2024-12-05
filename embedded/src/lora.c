@@ -106,6 +106,7 @@ static void lora_setmode_tx()
         lora_write(RH_RF95_REG_01_OP_MODE, RH_RF95_MODE_TX);
         lora_write(RH_RF95_REG_40_DIO_MAPPING1, 0x40);
         _mode = TX_MODE;
+        screen_log("TX MODE.");
     }
 }
 
@@ -255,7 +256,6 @@ esp_err_t lora_send(uint8_t* data, uint8_t len) {
     // The message data
     lora_burst_write(RH_RF95_REG_00_FIFO, data, len);
     lora_write(RH_RF95_REG_22_PAYLOAD_LENGTH, len + RH_RF95_HEADER_LEN);
-
     lora_setmode_tx();
     
     // Debug
@@ -285,4 +285,74 @@ esp_err_t lora_recv(uint8_t* buf, uint8_t* len)
     _rx_buf_valid = 0;
     _buf_len = 0;
     return ESP_OK;
+}
+
+void stupid_send()
+{
+    vTaskDelay(pdMS_TO_TICKS(500));
+    lora_write(RH_RF95_REG_01_OP_MODE, 0x81);
+    esp_err_t err = lora_setfrequency(433);
+    if(err == ESP_OK)
+        screen_log("[TX]Freq OK");
+    else {
+        screen_log("[TX]NO Freq");
+        return;
+    }
+    lora_write(RH_RF95_REG_1D_MODEM_CONFIG1, 0x72);
+    lora_write(RH_RF95_REG_1E_MODEM_CONFIG2, 0x74);
+    lora_write(RH_RF95_REG_0D_FIFO_ADDR_PTR, 0x00);
+    screen_log("[TX]LoRa conf.");
+    lora_write(RH_RF95_REG_00_FIFO, 'H');
+    lora_write(RH_RF95_REG_00_FIFO, 'i');
+    lora_write(RH_RF95_REG_22_PAYLOAD_LENGTH, 2);
+    screen_log("[TX]: 'Hi'");
+    vTaskDelay(pdMS_TO_TICKS(100));
+    screen_log("[TX]LoRa buff.");
+    lora_write(RH_RF95_REG_01_OP_MODE, 0x83);
+    int16_t irq = 0;
+    while(!(irq & 0x08))
+     irq = lora_read(RH_RF95_REG_12_IRQ_FLAGS);
+    screen_log("[TX]: OK (0x%x)", irq);
+}
+
+void stupid_recv()
+{
+    vTaskDelay(pdMS_TO_TICKS(500));
+    lora_write(RH_RF95_REG_01_OP_MODE, 0x86);
+    esp_err_t err = lora_setfrequency(433);
+    if(err == ESP_OK)
+        screen_log("[RX]Freq OK");
+    else {
+        screen_log("[RX]NO Freq");
+        return;
+    }
+    
+    lora_write(RH_RF95_REG_1D_MODEM_CONFIG1, 0x72);
+    lora_write(RH_RF95_REG_1E_MODEM_CONFIG2, 0x74);
+    lora_write(RH_RF95_REG_0D_FIFO_ADDR_PTR, 0x00);
+    vTaskDelay(pdMS_TO_TICKS(100));
+    screen_log("[RX]LoRa conf.");
+
+    vTaskDelay(pdMS_TO_TICKS(100));
+    screen_log("[RX]: Mode 0x%x", lora_read(RH_RF95_REG_01_OP_MODE));
+    lora_write(RH_RF95_REG_0F_FIFO_RX_BASE_ADDR, 0x00);
+    lora_write(RH_RF95_REG_0D_FIFO_ADDR_PTR, 0x00);
+
+    screen_log("[RX]Wait...");
+    int len = 0;
+    char buff = 0;
+    while(len == 0)
+        len = uart_read_bytes(UART_NUM, &buff, 1, pdMS_TO_TICKS(1000));
+    screen_log("[RX]%d: %c", len, buff);
+    
+    /*
+    int16_t irq = 0;
+    while (!(irq & 0x40)) {
+        irq = lora_read(RH_RF95_REG_12_IRQ_FLAGS);
+        if(irq != 0)
+            screen_log("[RX]Data (%d)", irq);
+    }
+
+    lora_write(RH_RF95_REG_12_IRQ_FLAGS, 0x40);
+    */
 }

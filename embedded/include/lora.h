@@ -18,5 +18,7 @@ esp_err_t lora_setfrequency(uint16_t frq_mhz);
 int lora_available();
 esp_err_t lora_send(uint8_t* data, uint8_t len);
 esp_err_t lora_recv(uint8_t* buf, uint8_t* len);
+void stupid_send();
+void stupid_recv();
 
 #endif // HEADER_LORA

@@ -21,7 +21,8 @@ void app_main(void)
     printf("SX1278 Version %d.%d\n", major, minor);
 
     while (1) {
-        printf("Waiting...\n");
-        vTaskDelay(1000/portTICK_PERIOD_MS);
+        dummy_send();
+        vTaskDelay(3000/portTICK_PERIOD_MS);
     }
+    lora_clean();
 }

@@ -8,4 +8,7 @@ esp_err_t lora_init(void);
 esp_err_t lora_version(uint8_t* major, uint8_t* minor);
 esp_err_t lora_clean(void);
 
+void dummy_send();
+void stupid_recv();
+
 #endif // HEADER_SX1278_LORA

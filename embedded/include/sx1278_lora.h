@@ -1,16 +1,14 @@
 #ifndef HEADER_SX1278_LORA
 #define HEADER_SX1278_LORA
 
-#include "driver/spi_master.h"
-#include "driver/gpio.h"
-
-// See wal schematic on https://github.com/what-a-leak/wal-hardware
-#define SX1278_PIN_NUM_MISO GPIO_NUM_5
-#define SX1278_PIN_NUM_MOSI GPIO_NUM_6
-#define SX1278_PIN_NUM_CLK  GPIO_NUM_4
-#define SX1278_PIN_NUM_CS   GPIO_NUM_7
+#include <esp_err.h>
 
 // Check SPI communication with SX1278
-void check_sx1278(void);
+esp_err_t lora_init(void);
+esp_err_t lora_clean(void);
+
+// Not to be used, private function later.
+esp_err_t spi_send(uint8_t* tx_data, size_t len);
+uint8_t* spi_recv(void);
 
 #endif // HEADER_SX1278_LORA

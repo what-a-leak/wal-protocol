@@ -1,5 +1,5 @@
-#ifndef HEADER_LORA
-#define HEADER_LORA
+#ifndef HEADER_RFM_LORA
+#define HEADER_RFM_LORA
 
 #include <esp_err.h>
 
@@ -21,4 +21,4 @@ esp_err_t lora_recv(uint8_t* buf, uint8_t* len);
 void stupid_send();
 void stupid_recv();
 
-#endif // HEADER_LORA
+#endif // HEADER_RFM_LORA

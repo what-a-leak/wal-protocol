@@ -1,4 +1,4 @@
-#include "lora.h"
+#include "rfm_lora.h"
 #include "pin.h"
 #include "rf95.h"
 // FOR DEBUG PURPOSES ONLY
@@ -160,7 +160,7 @@ esp_err_t lora_init()
         .stop_bits = UART_STOP_BITS_1,
         .flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
         .rx_flow_ctrl_thresh = 0,
-        .source_clk = UART_SCLK_PLL_F80M};
+        .source_clk = UART_SCLK_DEFAULT};
 
     // Install UART driver and set UART pins
     if ((err = uart_driver_install(UART_NUM, 1024, 0, 0, NULL, 0)) != ESP_OK)

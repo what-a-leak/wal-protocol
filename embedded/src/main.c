@@ -1,37 +1,17 @@
 #include <stdio.h>
-#include "pin.h"
+#include <string.h>
 
-// UART stuff
-#include "serial.h"
-#include "lora.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "driver/uart.h"
+#include "driver/gpio.h"
 
-// I2C stuff
-#include "screen.h"
-#include "logger.h"
-
-#define SEND 0
-
-esp_err_t err = ESP_OK;
+#include "sx1278_lora.h"
 
 void app_main(void)
 {
-    /* init m8 */
-    serial_init(9600, UART_NUM_0);
-    screen_init(SCREEN_SCL, SCREEN_SDA, 500000);
-    lora_init();
-
-    /* config screen */
-    screen_log("Init Screen.");
-    
-    /* stupid test */
-    #if SEND
-    stupid_send();
-    #else
-    stupid_recv();
-    #endif
-
-    while(1)
-    {
-        vTaskDelay(pdMS_TO_TICKS(1000));
+    while (1) {
+        check_sx1278();
+        vTaskDelay(1000/portTICK_PERIOD_MS);
     }
 }

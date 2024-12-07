@@ -3,8 +3,11 @@
 #include <stdarg.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "driver/uart.h"
 
-int serial_init(int baud_rate, uart_port_t port)
+#define UART_NUM    UART_NUM_0
+
+int serial_init(int baud_rate)
 {
     int err = 0;
     // Configure UART parameters
@@ -15,13 +18,13 @@ int serial_init(int baud_rate, uart_port_t port)
         .stop_bits = UART_STOP_BITS_1,
         .flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
         .rx_flow_ctrl_thresh = 0,
-        .source_clk = UART_SCLK_PLL_F80M
+        .source_clk = UART_SCLK_DEFAULT
     };
 
     // Install UART driver and set UART pins
-    if((err = uart_driver_install(port, 1024, 0, 0, NULL, 0)) != ESP_OK)
+    if((err = uart_driver_install(UART_NUM, 1024, 0, 0, NULL, 0)) != ESP_OK)
         return err;
-    err = uart_param_config(port, &uart_config);
+    err = uart_param_config(UART_NUM, &uart_config);
     return err;
 }
 
@@ -33,5 +36,5 @@ void serial_printf(const char* format, ...)
 
     int len = vsprintf(buff, format, args);
     va_end(args);
-    uart_write_bytes(UART_NUM_0, buff, len);
+    uart_write_bytes(UART_NUM, buff, len);
 }

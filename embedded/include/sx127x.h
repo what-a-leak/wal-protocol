@@ -19,6 +19,9 @@ https://github.com/jgromes/RadioLib
 #define RADIOLIB_SX1278_REG_AGC_THRESH_3                        0x64
 #define RADIOLIB_SX1278_REG_PLL                                 0x70
 
+// Added Registers
+#define SX1278_REG_VERSION                                      0x42
+
 // SX1278 LoRa modem settings
 // RADIOLIB_SX1278_REG_OP_MODE                                                MSB   LSB   DESCRIPTION
 #define RADIOLIB_SX1278_HIGH_FREQ                               0b00000000  //  3     3   access HF test registers

@@ -1,27 +1,38 @@
 #include "sx1278_lora.h"
+#include "sx127x.h"
 #include "pin.h"
 
-#include <stdio.h>
 #include <driver/spi_master.h>
 
-static spi_device_handle_t spi;
-static uint8_t rx_data[2];
+#define DATA_SIZE   2
 
-esp_err_t spi_send(uint8_t* tx_data, size_t len)
+static spi_device_handle_t spi;
+static uint8_t rx_data[DATA_SIZE] = {0};
+static uint8_t tx_data[DATA_SIZE] = {0};
+
+static inline int16_t spi_send(uint8_t reg)
 {
+    tx_data[0] = reg;
     spi_transaction_t transaction = {
-        .length = len*8,
+        .length = DATA_SIZE*8,
         .tx_buffer = tx_data,
         .rx_buffer = rx_data,
     };
 
-    printf("Send: 0x%02X 0x%02X\n", tx_data[0], tx_data[1]);
-    return spi_device_transmit(spi, &transaction);
+    if(spi_device_transmit(spi, &transaction) != ESP_OK)
+        return -1;
+    else
+        return (uint8_t)(rx_data[1]);
 }
 
-uint8_t* spi_recv(void)
+esp_err_t lora_version(uint8_t* major, uint8_t* minor)
 {
-    return rx_data;
+    const int16_t res = spi_send(SX1278_REG_VERSION);
+    if(res < 0)
+        return ESP_FAIL;
+    *minor = res & 0b1111;
+    *major = (res & 0b11110000) >> 4;
+    return ESP_OK;
 }
 
 esp_err_t lora_init(void) {

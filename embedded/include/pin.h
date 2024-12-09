@@ -3,10 +3,9 @@
 
 #include <driver/gpio.h>
 
-#define SCREEN_SDA  GPIO_NUM_7
-#define SCREEN_SCL  GPIO_NUM_6
-#define LORA_TX     GPIO_NUM_16
-#define LORA_RX     GPIO_NUM_17
+#define SCREEN_SDA  GPIO_NUM_8
+#define SCREEN_SCL  GPIO_NUM_9
+#define BUTTON      GPIO_NUM_1
 
 // See wal schematic on https://github.com/what-a-leak/wal-hardware
 #define SX1278_PIN_NUM_MISO GPIO_NUM_5

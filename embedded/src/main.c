@@ -3,26 +3,54 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 
+#include "pin.h"
 #include "sx1278_lora.h"
+#include "screen.h"
+#include "logger.h"
+#include "button.h"
 
 static esp_err_t err;
-void app_main(void)
+static uint32_t count=0;
+
+void setup()
 {
-    vTaskDelay(2000/portTICK_PERIOD_MS);
-    printf("Lora: Initializing...\n");
+    uint8_t major=0, minor=0;
+
+    /* Screen init */
+    printf("Screen: Initializing...\n");
+    screen_init(SCREEN_SCL,SCREEN_SDA,200000);
+
+    /* LoRa init */
+    screen_log("LoRa: Init...");
     if((err = lora_init()) != ESP_OK)
     {
-        printf("Lora: Init failed. (%s)\n", esp_err_to_name(err));
+        screen_log("LoRa: Failed.");
         return;
     }
-    
-    uint8_t major, minor;
     lora_version(&major,&minor);
-    printf("SX1278 Version %d.%d\n", major, minor);
+    screen_log("LoRa: Ver. %d.%d\n", major, minor);
 
-    while (1) {
-        dummy_send();
-        vTaskDelay(3000/portTICK_PERIOD_MS);
+    /* Button init */
+    if((err =button_init(BUTTON)) != ESP_OK)
+        screen_log("BTN: Failed.");
+    else
+        screen_log("BTN: OK.");
+}
+
+void loop(void)
+{
+    if(button_getlevel())
+    {
+        screen_log("[%d] btn press!", count);
+        count++;
     }
+    vTaskDelay(100/portTICK_PERIOD_MS);
+}
+
+void app_main(void)
+{
+    setup();
+    while (1)
+        loop();
     lora_clean();
 }

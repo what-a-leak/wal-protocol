@@ -11,7 +11,6 @@ typedef enum{
     NONE,
     PUSH,
     LONG_PUSH,
-    DOUBLE_PUSH
 } ButtonState;
 
 esp_err_t button_init(gpio_num_t pin);

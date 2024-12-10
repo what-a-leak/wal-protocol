@@ -28,14 +28,15 @@ void button_task(void* arg)
                 pressed = 1;
             }
             if(!pin_level && pressed) {
-                if((TIME_MS - time) > 400)
+                const uint32_t delta = (TIME_MS - time);
+                if(delta < 400)
                     btn = PUSH;
                 else
                     btn = LONG_PUSH;
                 pressed = 0;
             }
         }
-        vTaskDelay(100 / portTICK_PERIOD_MS);
+        vTaskDelay(50 / portTICK_PERIOD_MS);
     }
 }
 

@@ -90,7 +90,6 @@ void dummy_send() {
         if (recv != 0) {
             printf("Status: 0x%04X...\n", recv);
         }
-        vTaskDelay(1 / portTICK_PERIOD_MS); // Yield the CPU for 1 ms (ESP-IDF)
 
         attempts++;
         if (attempts > max_attempts) {

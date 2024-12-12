@@ -1,0 +1,51 @@
+\documentclass[9pt,conference]{IEEEtran}
+\usepackage{amssymb,amsthm,amsmath,array}
+\usepackage{graphicx}
+\usepackage[caption=false,font=footnotesize]{subfig}
+\usepackage{xspace}
+\usepackage[sort&compress, numbers]{natbib}
+\usepackage{stmaryrd}
+\usepackage{xcolor}
+\usepackage{mathtools}
+\usepackage{float}
+\usepackage{textcomp}
+
+\begin{document}
+\title{What A Leak Protocol \\Institut National des Sciences Appliquées de Toulouse}
+\author{\IEEEauthorblockN{
+        BOUJON Yohan\IEEEauthorrefmark{1}
+        CHANFREAU Cedric\IEEEauthorrefmark{2}
+        JOBARD Yann\IEEEauthorrefmark{3}
+        MARIN--MULLER Robin\IEEEauthorrefmark{4}
+        VASSEUR Cyril\IEEEauthorrefmark{5}
+    }
+}
+\maketitle
+
+\section{Introduction}
+The \textbf{What A Leak} project aims to optimize its performance for data sharing via multiple nodes. These nodes need to communicate within a certain range, and because they can be many and far away from each other, a specific protocol has to be designed. There are two layers in this protocol, the first one being highlighted in Sec.~\ref{sec:data-payload} will be the data processing layer, with multiple types that can be transferred and fields specific to the project's needs. The second layer will be discussed in Sec. ~\ref{sec:node-payload}, each nodes will be able to communicate with each other to transfer data over long range topology. These nodes need to identify the fastest path and will be helped by the main node. A cryptographic approach will be discussed in the Sub Sec. ~\ref{subsec:node-crypto} to help each node secure its data to the main gateway. There are some important constraints that we first need to talk about before entering into the depth of the tailored protocol. In Sec. ~\ref{sec:node-payload} every choices in term of timing, bandwidth, transmission power will be explained in details.
+
+\section{Timing constraints and bitrate} \label{sec:constraints}
+For around 2048 bytes every 30 seconds.
+Bandwidth possible: 125/62.5 kHz -> spreading factor of SF10 for better Signal-to-Noise ratio, it will take 16-18 seconds to transfer all the data (will look into the detail of higher airtime so higher duty cycle). Using Coding Rate of 4/7 or 4/8 to increase error correction. Using 433.92 MHz for complex scenarios and less prone to error transmission.
+
+\section{Data payload} \label{sec:data-payload}
+Data payload with the verdict, type of data, and raw data
+
+\section{Node payloads} \label{sec:node-payload}
+\subsection{Node discovery and topology}
+Spanning tree algorithm, topology will be stored in the main gateway.
+
+\subsection{Node packet transmission, Basic Mode}
+\subsection{Node packet transmission, Node2Node}
+Exchange packet between nodes with its id, the signal strength.
+
+\subsection{Cryptography between node} \label{subsec:node-crypto} 
+Private key and public key from main gateway. Topology fixed or dynamic.
+
+\section{Conclusion}
+
+\nocite{*}
+\bibliographystyle{IEEEtran}
+\bibliography{wal_protocol}
+\end{document}

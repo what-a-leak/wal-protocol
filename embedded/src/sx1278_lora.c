@@ -1,5 +1,5 @@
 #include "sx1278_lora.h"
-#include "sx127x.h"
+#include "old_sx127x.h"
 #include "pin.h"
 
 #include <driver/spi_master.h>

@@ -1,19 +1,23 @@
 #include "sx1278_lora.h"
-#include "old_sx127x.h"
+#include "sx127x.h"
 #include "pin.h"
 
 #include <driver/spi_master.h>
+#include <freertos/task.h>
 
 #define DATA_SIZE   2
+#define TIMEOUT     100
 
+// Private members
 static spi_device_handle_t spi;
 static uint8_t rx_data[DATA_SIZE] = {0};
 static uint8_t tx_data[DATA_SIZE] = {0};
+static uint64_t _frequency = 0;
 
-static inline uint16_t spi_send(uint8_t reg, uint8_t data)
+static inline uint16_t spi_read(uint8_t reg)
 {
     tx_data[0] = reg & 0x7F;
-    tx_data[1] = data;
+    tx_data[1] = 0;
     spi_transaction_t transaction = {
         .length = DATA_SIZE*8,
         .tx_buffer = tx_data,
@@ -23,15 +27,42 @@ static inline uint16_t spi_send(uint8_t reg, uint8_t data)
     if(spi_device_transmit(spi, &transaction) != ESP_OK)
         return 0;
     else
-        return (((uint16_t)rx_data[0] << 8) & 0xff00) + rx_data[1];
+        return rx_data[1];
+}
+
+static inline void spi_write(uint8_t reg, uint8_t data)
+{
+    tx_data[0] = 0x80 | reg;
+    tx_data[1] = data;
+    spi_transaction_t transaction = {
+        .length = DATA_SIZE*8,
+        .tx_buffer = tx_data,
+        .rx_buffer = rx_data,
+    };
+    spi_device_transmit(spi, &transaction);
 }
 
 esp_err_t lora_init(void) {
-    esp_err_t ret;
+    esp_err_t ret = ESP_OK;
+
+    /* Reset in case of issues */
+    if(SX1278_PIN_RST != GPIO_NUM_NC)
+    {
+        gpio_reset_pin(SX1278_PIN_RST);
+        gpio_set_direction(SX1278_PIN_RST, GPIO_MODE_OUTPUT);
+    }
+    /* Chip Select set to output */
+    if(SX1278_PIN_CS != GPIO_NUM_NC)
+    {
+        gpio_reset_pin(SX1278_PIN_CS);
+        gpio_set_direction(SX1278_PIN_CS, GPIO_MODE_OUTPUT);
+        gpio_set_level(SX1278_PIN_CS, 1);
+    }
+
     const spi_bus_config_t buscfg = {
-        .miso_io_num = SX1278_PIN_NUM_MISO,
-        .mosi_io_num = SX1278_PIN_NUM_MOSI,
-        .sclk_io_num = SX1278_PIN_NUM_CLK,
+        .miso_io_num = SX1278_PIN_MISO,
+        .mosi_io_num = SX1278_PIN_MOSI,
+        .sclk_io_num = SX1278_PIN_CLK,
         .quadwp_io_num = -1,
         .quadhd_io_num = -1,
         .max_transfer_sz = 32
@@ -39,20 +70,59 @@ esp_err_t lora_init(void) {
     const spi_device_interface_config_t devcfg = {
         .clock_speed_hz = SPI_MASTER_FREQ_10M, 
         .mode = 0,                        
-        .spics_io_num = SX1278_PIN_NUM_CS,
-        .queue_size = 1,                  
+        .spics_io_num = SX1278_PIN_CS,
+        .queue_size = 7,
+        .flags = 0,
+        .pre_cb = NULL       
     };
 
     ret = spi_bus_initialize(SPI2_HOST, &buscfg, SPI_DMA_CH_AUTO);
     if (ret != ESP_OK)
         return ret;
     ret = spi_bus_add_device(SPI2_HOST, &devcfg, &spi);
+    if (ret != ESP_OK)
+        return ret;
+
+    /* Reset in case of issues */
+    lora_reset();
+
+    /* Check if the version corresponds (device ok) */
+    uint8_t major=0, minor=0;
+    uint32_t timeout=0;
+    while((timeout < TIMEOUT) && !(major == 1 && minor == 2))
+    {
+        lora_version(&major, &minor);
+        WAL_PRINT("LoRa: Ver.%d.%d\n", major, minor);
+        vTaskDelay(10);
+        timeout++;
+    }
+    if(timeout >= TIMEOUT)
+        return ESP_ERR_TIMEOUT;
+
+    /* Sleep Mode */
+    spi_write(REG_OP_MODE, MODE_LONG_RANGE_MODE | MODE_SLEEP);
+    spi_write(REG_FIFO_RX_BASE_ADDR, 0);
+    spi_write(REG_FIFO_TX_BASE_ADDR, 0);
+    spi_write(REG_LNA, spi_read(REG_LNA) | 0x03);
+    spi_write(REG_MODEM_CONFIG_3, 0x04);
+    lora_set_tx_power(17);
+    /* Idle Mode */
+    spi_write(REG_OP_MODE, MODE_LONG_RANGE_MODE | MODE_STDBY);
+    
     return ret;
+}
+
+void lora_reset(void)
+{
+   gpio_set_level(SX1278_PIN_RST, 0);
+   vTaskDelay(pdMS_TO_TICKS(1));
+   gpio_set_level(SX1278_PIN_RST, 1);
+   vTaskDelay(pdMS_TO_TICKS(10));
 }
 
 esp_err_t lora_version(uint8_t* major, uint8_t* minor)
 {
-    const int16_t res = spi_send(SX1278_REG_VERSION,0x00);
+    const int16_t res = spi_read(REG_VERSION);
     if(res < 0)
         return ESP_FAIL;
     *minor = res & 0b1111;
@@ -60,52 +130,81 @@ esp_err_t lora_version(uint8_t* major, uint8_t* minor)
     return ESP_OK;
 }
 
-void dummy_send() {
-    spi_send(0x01, 0b10000000); // REG_OP_MODE: LoRa mode, sleep mode
-
-    // Configure frequency (433 MHz)
-    spi_send(0x06, 0x6C); // REG_FRF_MSB: 433 MHz frequency
-    spi_send(0x07, 0x80); // REG_FRF_MID
-    spi_send(0x08, 0x00); // REG_FRF_LSB
-
-    // Configure bandwidth, coding rate, and explicit header mode
-    spi_send(0x1D, RADIOLIB_SX1278_BW_125_00_KHZ | RADIOLIB_SX1278_CR_4_5 | RADIOLIB_SX1278_HEADER_EXPL_MODE);
-    spi_send(0x1E, (7 << 4) | RADIOLIB_SX1278_RX_CRC_MODE_ON); // REG_MODEM_CONFIG_2: SF7, CRC on
-    spi_send(0x09, 0x80 | RADIOLIB_SX1278_MAX_POWER); // REG_PA_CONFIG: PA_BOOST, max power
-    spi_send(0x22, 5); // REG_PAYLOAD_LENGTH: 5 bytes
-    spi_send(0x0D, 0x00); // REG_FIFO_ADDR_PTR: Reset FIFO pointer
-
-    // Write "Hello" to the FIFO
-    const char payload[] = "Hello";
-    for (int i = 0; i < 5; i++) {
-        spi_send(0x00, payload[i]); // Write each character to the FIFO (REG_FIFO)
-    }
-    spi_send(0x01, 0b10000011); // REG_OP_MODE: LoRa mode, transmit mode
-
-    int16_t recv = 0;
-    int max_attempts = 1000; // Adjust this value based on timing needs
-    int attempts = 0;
-
-    while (!(recv = spi_send(0x12, 0x00) & 0x08)) {
-        if (recv != 0) {
-            printf("Status: 0x%04X...\n", recv);
-        }
-
-        attempts++;
-        if (attempts > max_attempts) {
-            printf("Timeout waiting for TX_DONE flag.\n");
-            return; // Exit the function or handle the error
-        }
-    }
-    printf("Data sent.\n");
-
-    // Clear the TX_DONE flag
-    spi_send(0x12, 0x08); // REG_IRQ_FLAGS: Clear TX_DONE
-
-    // Set the device back to standby mode
-    spi_send(0x01, 0b10000001); // REG_OP_MODE: LoRa mode, standby mode
+void lora_set_tx_power(int level)
+{
+   if (level < 2) level = 2;
+   else if (level > 17) level = 17;
+   spi_write(REG_PA_CONFIG, 0x80 | (level - 2));
 }
 
+esp_err_t lora_set_frequency(long freq)
+{
+   _frequency = freq;
+   uint64_t frf = ((uint64_t)freq << 19) / 32000000;
+
+   spi_write(REG_FRF_MSB, (uint8_t)(frf >> 16));
+   spi_write(REG_FRF_MID, (uint8_t)(frf >> 8));
+   spi_write(REG_FRF_LSB, (uint8_t)(frf >> 0));
+   return ESP_OK;
+}
+
+esp_err_t lora_enable_crc(void)
+{
+   spi_write(REG_MODEM_CONFIG_2, spi_read(REG_MODEM_CONFIG_2) | 0x04);
+   return ESP_OK;
+}
+
+esp_err_t lora_set_coding_rate(int denominator)
+{
+    if (denominator < 5)
+        denominator = 5;
+    else if (denominator > 8)
+        denominator = 8;
+
+    spi_write(REG_MODEM_CONFIG_1, (spi_read(REG_MODEM_CONFIG_1) & 0xf1) | ((denominator - 4) << 1));
+    return ESP_OK;
+}
+
+esp_err_t lora_set_bandwidth(int bandwidth)
+{
+    if (bandwidth < 10)
+        spi_write(REG_MODEM_CONFIG_1, (spi_read(REG_MODEM_CONFIG_1) & 0x0f) | (bandwidth << 4));
+    return ESP_OK;
+}
+
+esp_err_t lora_set_spreading_factor(int spreading_factor)
+{
+   if (spreading_factor < 6)
+    spreading_factor = 6;
+   else if (spreading_factor > 12)
+    spreading_factor = 12;
+
+   if (spreading_factor == 6) {
+      spi_write(REG_DETECTION_OPTIMIZE, 0xc5);
+      spi_write(REG_DETECTION_THRESHOLD, 0x0c);
+   } else {
+      spi_write(REG_DETECTION_OPTIMIZE, 0xc3);
+      spi_write(REG_DETECTION_THRESHOLD, 0x0a);
+   }
+
+   spi_write(REG_MODEM_CONFIG_2, (spi_read(REG_MODEM_CONFIG_2) & 0x0f) | ((spreading_factor << 4) & 0xf0));
+    return ESP_OK;
+}
+
+int lora_get_coding_rate(void)
+{
+    return ((spi_read(REG_MODEM_CONFIG_1) & 0x0E) >> 1);
+}
+
+int lora_get_bandwidth(void)
+{
+    return ((spi_read(REG_MODEM_CONFIG_1) & 0xf0) >> 4);
+}
+
+int lora_get_spreading_factor(void)
+{
+    return (spi_read(REG_MODEM_CONFIG_2) >> 4);
+}
 
 esp_err_t lora_clean(void)
 {

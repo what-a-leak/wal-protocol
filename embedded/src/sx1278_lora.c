@@ -192,6 +192,27 @@ esp_err_t lora_set_spreading_factor(int spreading_factor)
     return ESP_OK;
 }
 
+int lora_receive()
+{
+    spi_write(REG_OP_MODE, MODE_LONG_RANGE_MODE | MODE_RX_CONTINUOUS);
+    return 0;
+}
+
+int lora_received()
+{
+    if(spi_read(REG_IRQ_FLAGS) & IRQ_RX_DONE_MASK) return 1;
+    return 0;
+}
+
+int lora_receive_packet()
+{
+    int irq = spi_read(REG_IRQ_FLAGS);
+    spi_write(REG_IRQ_FLAGS, irq);
+    if((irq & IRQ_RX_DONE_MASK) == 0) return 0;
+    if(irq & IRQ_PAYLOAD_CRC_ERROR_MASK) return 0;
+    return 1;
+}
+
 int lora_get_coding_rate(void)
 {
     return ((spi_read(REG_MODEM_CONFIG_1) & 0x0E) >> 1);

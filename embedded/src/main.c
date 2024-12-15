@@ -14,8 +14,6 @@
 #include "button.h"
 #include "test.h"
 
-static esp_err_t err;
-static uint32_t count=0;
 static ButtonState btn = NONE;
 #define TIME_MS (xTaskGetTickCount() * 1000 / configTICK_RATE_HZ)
 

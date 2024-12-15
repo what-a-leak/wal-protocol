@@ -23,6 +23,11 @@ esp_err_t lora_set_coding_rate(int denominator);
 esp_err_t lora_set_bandwidth(int bandwidth);
 esp_err_t lora_set_spreading_factor(int spreading_factor);
 
+// Receive
+int lora_receive();
+int lora_received();
+int lora_receive_packet();
+
 // Getters for registers
 long lora_get_frequency(void);
 int lora_get_coding_rate(void);

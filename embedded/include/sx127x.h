@@ -44,4 +44,9 @@ https://github.com/Inteform/esp32-lora-library
 #define MODE_RX_CONTINUOUS             0x05
 #define MODE_RX_SINGLE                 0x06
 
+// SX1278 IRQ
+#define IRQ_TX_DONE_MASK               0x08
+#define IRQ_PAYLOAD_CRC_ERROR_MASK     0x20
+#define IRQ_RX_DONE_MASK               0x40
+
 #endif //HEADER_SX127x

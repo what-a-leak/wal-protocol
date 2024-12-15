@@ -11,14 +11,15 @@ int test_recv_setup()
 {
     screen_log("LoRa:recv_setup");
     lora_init();
-    lora_set_frequency(433);
+    lora_set_frequency(433e6);
+    screen_log("LoRa:f= %0.0f MHz", lora_get_frequency()/1e6);
     lora_enable_crc();
     lora_set_coding_rate(CODING_RATE);
-    screen_log("LoRa: cr= %d", lora_get_coding_rate());
+    screen_log("LoRa:cr= %d", lora_get_coding_rate());
     lora_set_bandwidth(BANDWIDTH);
-    screen_log("LoRa: bw= %d", lora_get_bandwidth());
+    screen_log("LoRa:bw= %d", lora_get_bandwidth());
     lora_set_spreading_factor(SPREADING_FACTOR);
-    screen_log("LoRa: sf= %d", lora_get_spreading_factor());
+    screen_log("LoRa:sf= %d", lora_get_spreading_factor());
     
 
     return 0;

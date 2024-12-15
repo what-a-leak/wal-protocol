@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-#define CHAR_LIMIT  24
+#define CHAR_LIMIT  16
 #define MAX_LOG     7
 
 void screen_log(const char *format, ...);

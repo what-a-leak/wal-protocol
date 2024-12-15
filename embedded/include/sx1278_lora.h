@@ -24,6 +24,7 @@ esp_err_t lora_set_bandwidth(int bandwidth);
 esp_err_t lora_set_spreading_factor(int spreading_factor);
 
 // Getters for registers
+long lora_get_frequency(void);
 int lora_get_coding_rate(void);
 int lora_get_bandwidth(void);
 int lora_get_spreading_factor(void);

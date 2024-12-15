@@ -10,12 +10,15 @@ static char _log[MAX_LOG][CHAR_LIMIT];
 
 inline static void strcpy_log(char* dst, const char* src)
 {
-        for (uint8_t i = 0; (src[i] != '\0') || (i < CHAR_LIMIT - 1); i++)
-            dst[i] = src[i];
-        dst[CHAR_LIMIT] = '\0'; 
+    uint8_t i = 0;
+    for (i = 0; (src[i] != '\0') && (i < (CHAR_LIMIT-1)); i++)
+        dst[i] = src[i];
+    for(uint8_t j = i; j < (CHAR_LIMIT-1); j++)
+        dst[j] = ' '; 
+    dst[CHAR_LIMIT] = '\0'; 
 }
 
-inline static void copy_log(const char *src, char log[][24], uint8_t pos)
+inline static void copy_log(const char *src, char log[][CHAR_LIMIT], uint8_t pos)
 {
     // Adding a new log when empty buffer
     if (pos < MAX_LOG)

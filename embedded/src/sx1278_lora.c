@@ -68,7 +68,7 @@ esp_err_t lora_init(void) {
         .max_transfer_sz = 32
     };
     const spi_device_interface_config_t devcfg = {
-        .clock_speed_hz = SPI_MASTER_FREQ_10M, 
+        .clock_speed_hz = SPI_MASTER_FREQ_9M, 
         .mode = 0,                        
         .spics_io_num = SX1278_PIN_CS,
         .queue_size = 7,
@@ -99,6 +99,7 @@ esp_err_t lora_init(void) {
     if(timeout >= TIMEOUT)
         return ESP_ERR_TIMEOUT;
 
+    /* Default configuration */
     /* Sleep Mode */
     spi_write(REG_OP_MODE, MODE_LONG_RANGE_MODE | MODE_SLEEP);
     spi_write(REG_FIFO_RX_BASE_ADDR, 0);
@@ -204,6 +205,12 @@ int lora_get_bandwidth(void)
 int lora_get_spreading_factor(void)
 {
     return (spi_read(REG_MODEM_CONFIG_2) >> 4);
+}
+
+long lora_get_frequency(void)
+{
+    uint64_t frequency = ((uint64_t)((spi_read(REG_FRF_MSB) << 16) + (spi_read(REG_FRF_MID) << 8) + spi_read(REG_FRF_LSB))*32000000) >> 19;
+    return frequency;
 }
 
 esp_err_t lora_clean(void)

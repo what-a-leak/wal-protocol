@@ -36,6 +36,11 @@ void button_task(void* arg)
                 else
                     btn = LONG_PUSH;
                 pressed = 0;
+
+                /* Added functions */
+                test_change_mode(btn);
+                if(btn == PUSH)
+                    test_send_loop(PUSH);
             }
         }
         vTaskDelay(50 / portTICK_PERIOD_MS);
@@ -44,6 +49,7 @@ void button_task(void* arg)
 
 void setup()
 {
+    esp_err_t err = ESP_OK;
     // Screen init
     printf("Screen: Initializing...\n");
     screen_init(SCREEN_SCL,SCREEN_SDA,200000);
@@ -65,18 +71,10 @@ void setup()
 
 void loop(void)
 {
-#if WAL_BUTTON
-    if(btn != NONE) {
-        screen_log("[%d]BTN: %d", count, (int)btn);
-        count++;
-        // Reset
-        btn = NONE;
-    }
-#endif
 #if WAL_RECEIVE
   test_recv_loop();
 #elif WAL_SEND
-  test_send_loop();
+  test_send_loop(btn);
 #endif
 }
 
@@ -86,7 +84,10 @@ void app_main(void)
     esp_task_wdt_add(NULL);
     while (1) {
         loop();
+
         esp_task_wdt_reset();
         vTaskDelay(10/portTICK_PERIOD_MS);
+        /* Resetting the button state after everything is called. */
+        btn = NONE;
     }
 }

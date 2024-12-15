@@ -204,13 +204,55 @@ int lora_received()
     return 0;
 }
 
-int lora_receive_packet()
+int lora_receive_packet(uint8_t *buf, int size)
 {
-    int irq = spi_read(REG_IRQ_FLAGS);
+    int irq = spi_read(REG_IRQ_FLAGS), len = 0;
     spi_write(REG_IRQ_FLAGS, irq);
-    if((irq & IRQ_RX_DONE_MASK) == 0) return 0;
-    if(irq & IRQ_PAYLOAD_CRC_ERROR_MASK) return 0;
-    return 1;
+
+    /* Either CRC error or RX finished -> return len of 0 */
+    if((irq & IRQ_RX_DONE_MASK) == 0)
+        return len;
+    if(irq & IRQ_PAYLOAD_CRC_ERROR_MASK)
+        return len;
+
+    /* length of the packet*/
+    len = spi_read(REG_RX_NB_BYTES);
+
+    /* Reading the data from the FIFO */
+    return len;
+}
+
+esp_err_t lora_send_packet(uint8_t *buf, int size)
+{
+    /* Double checking if in idle mode */
+    spi_write(REG_OP_MODE, MODE_LONG_RANGE_MODE | MODE_STDBY);
+    spi_write(REG_FIFO_ADDR_PTR, 0);
+
+    /* Sending data to the FIFO register */
+    for(int i=0; i<size; i++) 
+      spi_write(REG_FIFO, buf[i]);
+    spi_write(REG_PAYLOAD_LENGTH, size);
+
+    /* Switching to TX mode */
+    spi_write(REG_OP_MODE, MODE_LONG_RANGE_MODE | MODE_TX);
+    
+    /* Checking if data has been transfered */
+    uint32_t timeout = 0;
+    int irq = 0;
+    while((timeout < TIMEOUT) && !(irq & IRQ_TX_DONE_MASK))
+    {
+        irq = spi_read(REG_IRQ_FLAGS);
+        vTaskDelay(10);
+        timeout++;
+    }
+
+   /* Idle mode + IRQ set to TX success */
+    spi_write(REG_IRQ_FLAGS, IRQ_TX_DONE_MASK);
+    spi_write(REG_OP_MODE, MODE_LONG_RANGE_MODE | MODE_STDBY);
+    if(timeout >= TIMEOUT)
+        return ESP_ERR_TIMEOUT;
+    else
+        return ESP_OK;
 }
 
 int lora_get_coding_rate(void)
@@ -232,6 +274,11 @@ long lora_get_frequency(void)
 {
     uint64_t frequency = ((uint64_t)((spi_read(REG_FRF_MSB) << 16) + (spi_read(REG_FRF_MID) << 8) + spi_read(REG_FRF_LSB))*32000000) >> 19;
     return frequency;
+}
+
+int lora_packet_rssi(void)
+{
+   return (spi_read(REG_PKT_RSSI_VALUE) - (_frequency < 868e6 ? 164 : 157));
 }
 
 esp_err_t lora_clean(void)

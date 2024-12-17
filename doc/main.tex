@@ -89,7 +89,16 @@ The internal RTC\footnote{\textbf{RTC}: Real-Time Clock} of each node may not be
 \end{figure}
 
 \section{Data payload} \label{sec:data-payload}
-Once everything is setup, it is now the time to send data. A data payload can have multiple types in itself, this is why there is 2 bytes header with the type (5-bits) and the size (13-bits). The 4 first bits are indicator of either 8,16,32 or 64 bits integers or a floating value (on 32-bits), a final 5th bit determine the signess of the underlying data. Then the data can be delivered on \textit{8192 bytes maximum}.
+Once everything is setup, it is now the time to send data. A data payload can have multiple types in itself, this is why there is 2 bytes header with the type (5-bits) and the size (13-bits). The 4 first bits are indicator of either 8,16,32 or 64 bits integers or a floating value (on 32-bits), a final 5th bit determine the signess of the underlying data.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\linewidth]{img/type_bits.png}
+    \caption{Type bits in Data Payload}
+    \label{fig:type-bits}
+\end{figure}
+
+The data can then be delivered on \textit{8192 bytes maximum}.
+
 \begin{figure}[H]
     \centering
     \includegraphics[width=1\linewidth]{img/data.png}

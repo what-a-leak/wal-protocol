@@ -12,6 +12,7 @@ set(TARGET wal_protocol)
 # Source files
 set(SOURCES "${PROJECT_SOURCE_DIR}/src")
 add_executable(${TARGET}
+    ${SOURCES}/packet.c
     ${SOURCES}/main.c
 )
 

@@ -1,2 +1,4 @@
 # Downloaded content
 module/*
+# VSCode
+.vscode/*

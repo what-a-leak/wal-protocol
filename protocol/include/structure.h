@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-#define WAL_NAME        0b011010100
+#define WAL_NAME        0xd4//0b011010100
 #define WAL_MAJOR       1
 #define WAL_MINOR       0
 
@@ -42,30 +42,31 @@ typedef struct __attribute__((packed)) wal_payload_header_s {
     They will be done shortly. We will mainly focus on data.
 */
 
-#define WAL_TYPE_UINT8      0
-#define WAL_TYPE_UINT16     0b00001
-#define WAL_TYPE_UINT32     0b00010
-#define WAL_TYPE_UINT64     0b00011
-#define WAL_TYPE_FLOAT32    0b00100
-#define WAL_TYPE_SIGNED     0x10
+typedef enum wal_type_e {
+    WAL_TYPE_UINT8,
+    WAL_TYPE_UINT16,
+    WAL_TYPE_UINT32,
+    WAL_TYPE_UINT64,
+    WAL_TYPE_FLOAT32,
+    WAL_TYPE_SIGNED = (1 << 4),
+} wal_type_t;
 
 #define WAL_TYPE_MAXSIZE    ((1 << 11)-1)
 
-typedef struct __attribute__((packed)) wal_type_s {
+typedef struct __attribute__((packed)) wal_data_header_s {
     uint8_t type:       5;
     uint16_t size:      11;
-} wal_type_t;
+} wal_data_header_t;
 
-enum wal_label_e {
+typedef enum wal_label_e {
     WAL_LABEL_NULL,
     WAL_LABEL_FFT,
     WAL_LABEL_MICROPHONE,
-};
-typedef uint8_t wal_label_t;
+} wal_label_t;
 
 typedef struct __attribute__((packed)) wal_payload_data_s {
-    wal_type_t header;
-    wal_label_t label;
+    wal_data_header_t header;
+    uint8_t label;
     void*   data;
 } wal_payload_data_t;
 

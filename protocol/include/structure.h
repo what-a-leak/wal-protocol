@@ -3,7 +3,9 @@
 
 #include <stdint.h>
 
-#define WAL_NAME        0xd4//0b011010100
+#define PACKET_DEBUG
+
+#define WAL_NAME        0xd4    //0b011010100
 #define WAL_MAJOR       1
 #define WAL_MINOR       0
 
@@ -69,5 +71,12 @@ typedef struct __attribute__((packed)) wal_payload_data_s {
     uint8_t label;
     void*   data;
 } wal_payload_data_t;
+
+typedef enum wal_error_e {
+    WAL_OK = 0,
+    WAL_ERROR_NAME = -1,
+    WAL_ERROR_VER = -2,
+    WAL_ERROR_BAD_ADDR = -3,
+} wal_error_t;
 
 #endif //HEADER_WAL_PROTOCOL_STRUCTURE

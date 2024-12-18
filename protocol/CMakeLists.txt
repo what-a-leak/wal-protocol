@@ -5,7 +5,7 @@ project(
   VERSION 1.0.0
   DESCRIPTION "WAL Applicative Protocol"
   HOMEPAGE_URL "https://github.com/what-a-leak"
-  LANGUAGES CXX C
+  LANGUAGES C
 )
 set(TARGET wal_protocol)
 

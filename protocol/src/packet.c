@@ -2,6 +2,12 @@
 
 #include <stdio.h>
 
+#ifdef PACKET_DEBUG
+    #define WAL_PRINT(...)  printf(__VA_ARGS__)   
+#else
+    #define WAL_PRINT(...)
+#endif
+
 /* ------- */
 /* private */
 /* ------- */
@@ -9,6 +15,7 @@
 wal_payload_header_t _header = {0};
 wal_payload_data_t _payload_data = {0};
 uint8_t _packet[256];  // 256 bytes, enough for now.
+uint32_t _src_addr = 0;
 
 static inline void packet_init(void)
 {
@@ -46,20 +53,20 @@ static inline size_t packet_size(void)
 /* public */
 /* ------ */
 
-void packet_init_full_addr(uint32_t src, uint32_t dst)
+void packet_init_full_addr(uint32_t addr_dst)
 {
     packet_init();
     _header.header.addr_size = WAL_ADDR_FULL;
-    _header.addr_src = src;
-    _header.addr_dst = dst;
+    _header.addr_src = _src_addr;
+    _header.addr_dst = addr_dst;
 }
 
-void packet_init_min_addr(uint8_t src, uint8_t dst)
+void packet_init_min_addr(uint8_t addr_dst)
 {
     packet_init();
     _header.header.addr_size = WAL_ADDR_MIN;
-    _header.addr_src = src;
-    _header.addr_dst = dst;
+    _header.addr_src = (uint8_t)_src_addr;
+    _header.addr_dst = addr_dst;
 }
 
 void packet_add_data(wal_type_t type, wal_label_t label, void* data, size_t size)
@@ -128,8 +135,76 @@ uint8_t* packet_get(size_t* size)
     return _packet;
 }
 
+wal_error_t packet_parse(uint8_t* data, uint8_t* cmd, uint8_t** msg)
+{
+    _header = (wal_payload_header_t){0};
+    size_t offset = 0;
+
+    /* Checking name */
+    _header.header.name = (data[offset] << 1) + ((data[offset+1] & 0x80) >> 7);
+    offset++;
+    if(_header.header.name != WAL_NAME)
+    {
+        WAL_PRINT("Header name incorrect (0x%x). Rejecting packet.\n", _header.header.name);
+        return WAL_ERROR_NAME;
+    }
+    WAL_PRINT("Name: 0x%x\n", _header.header.name);
+
+    /* Checking version */
+    _header.header.ver_major = (data[offset] & 0x7f);
+    offset++;
+    _header.header.ver_minor = (data[offset] & 0xfe);
+    if((_header.header.ver_major != WAL_MAJOR) || (_header.header.ver_minor != WAL_MINOR))
+    {
+        WAL_PRINT("Header version incorrect (Ver.%d.%d). Rejecting packet.\n", _header.header.ver_major, _header.header.ver_minor);
+        return WAL_ERROR_VER;
+    }
+    WAL_PRINT("Ver.%d.%d\n", _header.header.ver_major, _header.header.ver_minor);
+
+    /* Address */
+    _header.header.addr_size = (data[offset] & 0x01);
+    offset++;
+    if(_header.header.addr_size == WAL_ADDR_FULL)
+    {
+        _header.addr_src = (_packet[offset] << 16) + (_packet[offset+1] << 8) + _packet[offset+2];
+        _header.addr_dst = (_packet[offset+3] << 16) + (_packet[offset+4] << 8) + _packet[offset+5];
+        offset += 6;
+    }
+    else {
+        _header.addr_src= _packet[offset];
+        _header.addr_dst = _packet[offset+1];
+        offset += 2;
+    }
+    if(_header.addr_dst != _src_addr)
+    {
+        WAL_PRINT("Destination Address incorrect (0x%x). Ignoring packet.\n", _header.addr_dst);
+        return WAL_ERROR_VER;
+    }
+    WAL_PRINT("To: 0x%x\t\tFrom: 0x%x\n", _header.addr_dst, _header.addr_src);
+    /* Command */
+    _header.command.cmd = _packet[offset] >> 4;
+    _header.command.has_leak = (_packet[offset] >> 3) & 0x01;
+    offset++;
+
+    *cmd = _header.command.cmd;
+    *msg = data+offset;
+    return WAL_OK;
+}
+
+wal_payload_data_t packet_parse_data(uint8_t* msg)
+{
+    wal_payload_data_t ret = {0};
+
+    ret.header.type = (msg[0] >> 3) & 0x1f;
+    ret.header.size = (msg[0] & 0x7) + msg[1];
+    ret.label = msg[2];
+    ret.data = msg+2;
+    return ret;
+}
+
 /* ------- */
 /* setters */
 /* ------- */
 
 void packet_set_leak(int status) { _header.command.has_leak = status; }
+void packet_set_src_addr(uint32_t addr) { _src_addr = addr; }

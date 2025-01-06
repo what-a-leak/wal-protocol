@@ -1,0 +1,14 @@
+cff-version: 1.2.0
+title: What A Leak Protocol
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Yohan
+    family-names: Boujon
+    affiliation: INSA Toulouse
+    orcid: 'https://orcid.org/0009-0003-9562-3007'
+repository-code: 'https://github.com/what-a-leak/wal-protocol'
+abstract: What A Leak! open protocol
+license: MIT
